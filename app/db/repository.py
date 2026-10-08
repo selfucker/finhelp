@@ -166,7 +166,7 @@ async def append_summary_segment(conversation_id: int, from_msg_id: int,
                                  upto_msg_id: int, content: str) -> int:
     """追加一段摘要,同时把 conversations 的边界和拼好的投影一起更新。
 
-    段落只追加不改写:已有的段不会再进模型,里面的订单号这类事实压过一次就定死了。
+    段落只追加不改写:已有的段不会再进模型,里面的交易号这类事实压过一次就定死了。
     conversations.summary 存的是最近若干段拼好的结果,读的时候少一次查询。"""
     async with db.async_session() as s:
         # 先把已有的几段读出来再 add:反过来的话 autoflush 会把新段也算进这次查询,

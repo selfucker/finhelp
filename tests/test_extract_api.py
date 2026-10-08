@@ -7,7 +7,7 @@ from langchain_core.runnables import RunnableLambda
 
 from app.api import extract as extract_api
 from app.main import app
-from app.schemas.extract import AfterSalesTicket
+from app.schemas.extract import DisputeTicket
 
 
 def override(runnable):
@@ -20,16 +20,16 @@ def teardown_function():
 
 
 def test_extract_returns_structured_json():
-    ticket = AfterSalesTicket(
-        order_id="MH20260701123", request_type="退款", expected_solution="到货损坏要求退款"
+    ticket = DisputeTicket(
+        txn_id="1001", request_type="争议退款", expected_solution="这笔不是我刷的,要求退款"
     )
     client = override(RunnableLambda(lambda _: ticket))
-    resp = client.post("/api/extract", json={"text": "订单 MH20260701123 散架了,退款"})
+    resp = client.post("/api/extract", json={"text": "交易 1001 不是我刷的,要申诉"})
     assert resp.status_code == 200
     assert resp.json() == {
-        "order_id": "MH20260701123",
-        "request_type": "退款",
-        "expected_solution": "到货损坏要求退款",
+        "txn_id": "1001",
+        "request_type": "争议退款",
+        "expected_solution": "这笔不是我刷的,要求退款",
     }
 
 

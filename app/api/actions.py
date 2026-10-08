@@ -47,14 +47,14 @@ async def create_refund_action(req: CreateRefundRequest) -> CreateRefundResponse
     try:
         ticket_no = await repository.create_ticket(req.conversation_id, desc, "争议")
     except SQLAlchemyError:
-        logger.exception("退款单创建失败 conv=%s", req.conversation_id)
-        raise HTTPException(status_code=503, detail="退款系统暂时不可用,请稍后重试")
+        logger.exception("争议单创建失败 conv=%s", req.conversation_id)
+        raise HTTPException(status_code=503, detail="争议系统暂时不可用,请稍后重试")
     return CreateRefundResponse(ticket_no=ticket_no)
 
 
 @router.post("/api/actions/resume")
 async def resume_action(req: ResumeRequest):
-    """中断续跑(SSE,事件与 /api/chat 同构):订单选择器点选回 order_id;
+    """中断续跑(SSE,事件与 /api/chat 同构):交易选择器点选回 order_id;
     工单预览卡回 confirmed(ch08,resume 值为 {"confirmed": bool},agent_tools 按此放行/拒绝)。"""
     if req.order_id is None and req.confirmed is None:
         raise HTTPException(status_code=400, detail="order_id 与 confirmed 至少传一个")

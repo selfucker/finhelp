@@ -84,8 +84,8 @@ class Settings(BaseSettings):
     # 估成 12 token)。中文语料按 1 字≈1.2 token 校准。
     zh_chars_per_token: float = 1.2
     # ch08 工具系统(注册中心 + 执行引擎 + MCP 接入)
-    mcp_logistics_url: str = "http://127.0.0.1:8101/mcp"    # 物流 MCP Server
-    mcp_aftersales_url: str = "http://127.0.0.1:8102/mcp"   # 售后 MCP Server
+    mcp_logistics_url: str = "http://127.0.0.1:8101/mcp"    # 账务核心 MCP Server
+    mcp_aftersales_url: str = "http://127.0.0.1:8102/mcp"   # 风控与争议 MCP Server
     tool_default_timeout: float = 5.0    # 内置工具默认超时(秒)
     mcp_tool_timeout: float = 10.0       # MCP 工具默认超时(走 HTTP,放宽)
     tool_max_retries: int = 2            # 只读工具暂时性故障最大重试次数

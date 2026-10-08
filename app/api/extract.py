@@ -9,7 +9,7 @@ from langchain_core.runnables import Runnable
 
 from app.core.llm import get_chat_model
 from app.core.prompts import EXTRACT_PROMPT
-from app.schemas.extract import AfterSalesTicket, ExtractRequest
+from app.schemas.extract import DisputeTicket, ExtractRequest
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -17,13 +17,13 @@ router = APIRouter()
 
 def get_extractor() -> Runnable:
     model = get_chat_model()
-    return EXTRACT_PROMPT | model.with_structured_output(AfterSalesTicket)
+    return EXTRACT_PROMPT | model.with_structured_output(DisputeTicket)
 
 
-@router.post("/api/extract", response_model=AfterSalesTicket)
+@router.post("/api/extract", response_model=DisputeTicket)
 async def extract(
     req: ExtractRequest, extractor: Runnable = Depends(get_extractor)
-) -> AfterSalesTicket:
+) -> DisputeTicket:
     try:
         return await extractor.ainvoke({"text": req.text})
     except Exception as exc:

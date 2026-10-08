@@ -160,7 +160,7 @@ def summary_system(summary: str | None) -> SystemMessage | None:
 
 # ---- 层 2:半压形态 ----
 # 实测一段历史里用户消息只占 2%,客服答复 43%,工具结果 54%。所以压后两者、
-# 留用户原话:丢的是自己说过的话,留下的是「那双跑鞋」「订单 1001」这些指代线索。
+# 留用户原话:丢的是自己说过的话,留下的是「那笔交易」「交易 1001」这些指代线索。
 
 def compress_reply(text: str, keep_chars: int | None = None) -> str:
     """客服答复降到层 2 的形态:留头部。客服答复第一句通常就是结论。"""
@@ -173,7 +173,7 @@ def compress_reply(text: str, keep_chars: int | None = None) -> str:
 def compress_tool_result(name: str, content: str) -> str:
     """工具结果降到层 2 的形态。
 
-    小结果(订单字段那种)原样留着,下一轮追问还用得上;大块的(检索证据 3500 字)
+    小结果(交易字段那种)原样留着,下一轮追问还用得上;大块的(检索证据 3500 字)
     压成一行标识——那份证据是某一轮用来答某一个问题的,答完就不该再占位,
     真要数据下次实时查,比留着的旧值还新。"""
     if not content:

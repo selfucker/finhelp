@@ -32,7 +32,7 @@ async def summarize_dialog(old_summary: str, dialog: str) -> str:
     """把这一批对话压成一段。严格 JSON(structured output)。
 
     old_summary 只作为背景给模型看,不参与重写:产出的是**新的一段**,已有段落不回炉。
-    这样订单号这类事实只被压一次,不会因为反复压缩被磨掉。提示词那边也得跟着写死
+    这样交易号这类事实只被压一次,不会因为反复压缩被磨掉。提示词那边也得跟着写死
     「不要复述、不要合并」,不然模型会把旧梗概重写一遍,存是分段存了,内容照样在累积损失。"""
     model = llm.structured(_Summary, slot="summary")
     r: _Summary = await (SUMMARY_PROMPT | model).ainvoke(

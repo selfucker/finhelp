@@ -56,7 +56,7 @@ async def lifespan(app: FastAPI):
     try:
         from app.core import retrieval
         for _ in range(15):
-            hits = await retrieval.search_knowledge("退货运费", strategy="bm25", top_k=1)
+            hits = await retrieval.search_knowledge("分期手续费", strategy="bm25", top_k=1)
             if hits:
                 logger.info("Milvus 预热完成,集合可检索")
                 break

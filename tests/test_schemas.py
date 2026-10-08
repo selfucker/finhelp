@@ -6,7 +6,7 @@ import pytest
 from pydantic import ValidationError
 
 from app.schemas.chat import ChatRequest
-from app.schemas.extract import AfterSalesTicket, ExtractRequest, RequestType
+from app.schemas.extract import DisputeTicket, ExtractRequest, RequestType
 
 
 def test_chat_request_rejects_empty_message():
@@ -19,23 +19,21 @@ def test_extract_request_rejects_empty_text():
         ExtractRequest(text="")
 
 
-def test_ticket_order_id_nullable():
-    t = AfterSalesTicket(order_id=None, request_type="退款", expected_solution="退全款")
-    assert t.order_id is None
-    assert t.request_type is RequestType.REFUND
+def test_ticket_txn_id_nullable():
+    t = DisputeTicket(txn_id=None, request_type="争议退款", expected_solution="退全款")
+    assert t.txn_id is None
+    assert t.request_type is RequestType.DISPUTE_REFUND
 
 
 def test_ticket_rejects_unknown_request_type():
     with pytest.raises(ValidationError):
-        AfterSalesTicket(order_id=None, request_type="砍价", expected_solution="x")
+        DisputeTicket(txn_id=None, request_type="砍价", expected_solution="x")
 
 
-def test_ticket_normalizes_placeholder_order_id_to_none():
+def test_ticket_normalizes_placeholder_txn_id_to_none():
     for placeholder in ("null", "None", "无", " N/A ", ""):
-        t = AfterSalesTicket(
-            order_id=placeholder, request_type="投诉", expected_solution="x"
-        )
-        assert t.order_id is None, placeholder
-    assert AfterSalesTicket(
-        order_id="MH20260701123", request_type="退款", expected_solution="x"
-    ).order_id == "MH20260701123"
+        t = DisputeTicket(txn_id=placeholder, request_type="投诉", expected_solution="x")
+        assert t.txn_id is None, placeholder
+    assert DisputeTicket(
+        txn_id="1001", request_type="争议退款", expected_solution="x"
+    ).txn_id == "1001"

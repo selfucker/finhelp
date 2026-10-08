@@ -40,7 +40,7 @@ def _user_text(state) -> str:
 
 def _history_text(state, max_turns: int = 6) -> str:
     """摘要行 + 滑窗内最近若干轮(不含本轮最后一条 human),供 coref/意图读上下文。
-    ch07:先按摘要边界切窗再取尾——跨滑窗的指代(「最开始那个订单」)靠摘要行兜住。"""
+    ch07:先按摘要边界切窗再取尾——跨滑窗的指代(「最开始那笔交易」)靠摘要行兜住。"""
     msgs = memory.build_window(state.get("messages", []),
                                state.get("summary_upto_msg_id") or 0,
                                state.get("layer1_from_msg_id") or 0)
@@ -56,7 +56,7 @@ def _history_text(state, max_turns: int = 6) -> str:
     return f"{head}\n{body}".strip() if head else body
 
 
-# 4+ 位连续数字视作订单号;用 lookaround 而非 \b——CJK 与数字同属 \w,\b 在「订单1001」处不成立
+# 4+ 位连续数字视作交易号;用 lookaround 而非 \b——CJK 与数字同属 \w,\b 在「交易1001」处不成立
 _ORDER_RE = re.compile(r"(?<!\d)(\d{4,})(?!\d)")
 
 
@@ -66,25 +66,25 @@ def _extract_order_id(text: str) -> str | None:
 
 
 async def fetch_order(state) -> dict:
-    """退款子流程第一步:抽订单号;缺了、或者报的不是自己的单,都 interrupt 弹订单选择器
-    等前端点选(resume 回填);拿到后 order_snapshot 取订单数据。
+    """争议申诉流程第一步:抽交易号;缺了、或者报的不是自己的单,都 interrupt 弹交易选择器
+    等前端点选(resume 回填);拿到后 order_snapshot 取交易数据。
     interrupt 之前只做只读(resume 时本节点从头重跑)。
 
-    归属校验放在这里而不是只放在工具里:退款子流程是确定性节点,不经 agent_tools,
+    归属校验放在这里而不是只放在工具里:争议申诉流程是确定性节点,不经 agent_tools,
     工具那道校验够不着。用户随口报的号、resume 端点回传的号,都得过同一道判断。"""
     uid = state.get("user_id", "")
     oid = state.get("order_id") or _extract_order_id(
         state.get("resolved_query") or _user_text(state))
     while not business.owns_order(uid, str(oid or "")):
         orders = business.list_user_orders(uid)                        # 只读,可安全重跑
-        oid = interrupt({"type": "select_order", "orders": orders})    # resume 回填订单号
+        oid = interrupt({"type": "select_order", "orders": orders})    # resume 回填交易号
     data = business.order_snapshot(oid)
     return {"order_id": oid, "order_data": data,
             "trace": {"fetch_order": {"order_id": oid}}}
 
 
 async def retrieve_policy(state) -> dict:
-    """退款子流程强制检索政策:Query 扩写 3 条 → 多 query 各检索一次 → 按 chunk id 去重合并
+    """争议申诉流程强制检索政策:Query 扩写 3 条 → 多 query 各检索一次 → 按 chunk id 去重合并
     (保留每 id 最高分)→ 按分降序拼编号证据。产出注入 main_agent 作「能不能退」的判据(README L194:
     不让模型凭记忆答)。库里知识一份,扩写只在检索侧现查现用。"""
     base = state.get("resolved_query") or _user_text(state)
@@ -168,7 +168,7 @@ async def resolve_reference(state) -> dict:
 
 async def classify_intent(state) -> dict:
     """意图四件套:八类 + confidence + 「其他」兜底。吃 resolved_query(空则回落原话)+ 最近历史
-    判当前意图(应对物流→退款→物流漂移)。把归属出口 route 落进 State(供 _agent_messages 判注入、
+    判当前意图(应对账务查询→争议申诉→账务查询漂移)。把归属出口 route 落进 State(供 _agent_messages 判注入、
     log 留痕;route_by_intent 条件边按同一 INTENT_TO_ROUTE 分流,单一来源不漂移)。"""
     query = state.get("resolved_query") or _user_text(state)
     r = await intent_mod.classify(query, _history_text(state))
@@ -236,9 +236,9 @@ _KNOWLEDGE_EVIDENCE_HINT = (
 
 
 def _turn_context(state) -> str:
-    """本轮才有的材料:检索证据 + 退款路的订单数据。没有就返回空串。
+    """本轮才有的材料:检索证据 + 争议路的交易数据。没有就返回空串。
 
-    顺序不能反:REFUND_JUDGE_HINT 的措辞是「下面给出该订单数据与检索到的退换货政策证据」,
+    顺序不能反:REFUND_JUDGE_HINT 的措辞是「下面给出该交易数据与检索到的争议政策证据」,
     它假设证据已在前文给过。"""
     parts = []
     ss = memory.summary_system(state.get("summary"))
@@ -357,7 +357,7 @@ async def agent_tools(state) -> dict:
 
     tool_msgs = []
     actions = list(state.get("suggested_actions", []))
-    not_owned = False        # 这一轮有没有人报了不属于自己的订单号
+    not_owned = False        # 这一轮有没有人报了不属于自己的交易号
     for tc in last.tool_calls:
         if tc["name"] == "submit_dispute":
             # submit_dispute 在这里就被拦成前端表单、不进执行引擎,所以工具内那道归属校验

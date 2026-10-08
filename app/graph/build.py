@@ -35,7 +35,7 @@ def _builder() -> StateGraph:
         "refund_flow": "fetch_order",
         "business": "main_agent",
     })
-    # 退款子流程确定性链:取单 → 检索政策 → 交主力 Agent 判能不能退
+    # 争议申诉流程确定性链:取单 → 检索政策 → 交主力 Agent 判能不能退
     b.add_edge("fetch_order", "retrieve_policy")
     b.add_edge("retrieve_policy", "main_agent")
     # 知识路:检索 → 生成前证据闸

@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 ANSWER_NODES = {"main_agent"}
 # 确定性节点把答复写在 state['answer'],整块作为 delta 吐出
 DETERMINISTIC_ANSWER_NODES = {"script_reply", "complaint_reply", "fallback_reply"}
-# 产出编号引用的检索节点(知识路 retrieve_knowledge + 退款政策路 retrieve_policy)
+# 产出编号引用的检索节点(知识路 retrieve_knowledge + 争议政策路 retrieve_policy)
 CITATION_NODES = {"retrieve_knowledge", "retrieve_policy"}
 
 _graph = None
@@ -120,7 +120,7 @@ def _graph_input(user_id: str, message: str, cid: int, msg_id: int,
 
 def _interrupt_payload(state: dict):
     """从终态提取中断负载(整个 __interrupt__[0].value:含 type + orders/preview 等);
-    无中断返回 None。ch08 起中断不止订单选择器,负载透传、消费方按 type 分发。"""
+    无中断返回 None。ch08 起中断不止交易选择器,负载透传、消费方按 type 分发。"""
     intr = state.get("__interrupt__")
     if not intr:
         return None
@@ -248,7 +248,7 @@ async def stream_turn(user_id, message, conversation_id) -> AsyncIterator[dict]:
 
 
 async def stream_resume(conversation_id: int, resume_value) -> AsyncIterator[dict]:
-    """前端点选订单后续跑同一会话的暂停流(Command(resume) 续 astream,事件与 stream_turn 同构)。"""
+    """前端点选交易后续跑同一会话的暂停流(Command(resume) 续 astream,事件与 stream_turn 同构)。"""
     if await repository.get_conversation(conversation_id) is None:
         raise ConversationNotFound(conversation_id)
     async for ev in _stream_events(conversation_id, Command(resume=resume_value)):
