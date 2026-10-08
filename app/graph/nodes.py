@@ -230,7 +230,7 @@ async def confidence_check(state) -> dict:
 
 _KNOWLEDGE_EVIDENCE_HINT = (
     "\n\n## 已检索到的知识证据(请据此作答,每个关键结论后标注来源编号如[1];"
-    "证据已给,不要再调用 query_faq;仍可按需调用订单/物流等工具)\n"
+    "证据已给,不要再调用 query_faq;仍可按需调用交易/账单等工具)\n"
     "型号编号逐字复制证据里的写法,证据里没有的型号不要写;带条件的结论要连条件一起说。\n"
 )
 
@@ -338,7 +338,7 @@ async def agent_tools(state) -> dict:
     """ReAct 行动步(ch08):一切工具经统一执行引擎。create_ticket(唯一写操作)走确认流——
     参数齐则节点顶部 interrupt 推工单预览(interrupt 前只做纯计算,resume 重跑安全,照 fetch_order
     范式);参数缺则交引擎按「校验拦下」回灌,模型自然向用户追问,不弹卡。
-    submit_refund 仍拦成前端退款表单(ch06 语义不变)。"""
+    submit_dispute 仍拦成前端争议表单(ch06 语义不变)。"""
     last = state["messages"][-1]
     cid = state.get("conversation_id", 0)
     uid = state.get("user_id", "")
@@ -359,22 +359,22 @@ async def agent_tools(state) -> dict:
     actions = list(state.get("suggested_actions", []))
     not_owned = False        # 这一轮有没有人报了不属于自己的订单号
     for tc in last.tool_calls:
-        if tc["name"] == "submit_refund":
-            # submit_refund 在这里就被拦成前端表单、不进执行引擎,所以工具内那道归属校验
-            # 对它不生效,得在拦截之前判一次。不然退款入口就成了绕过校验的后门。
-            if not business.owns_order(uid, str(tc["args"].get("order_id") or "")):
+        if tc["name"] == "submit_dispute":
+            # submit_dispute 在这里就被拦成前端表单、不进执行引擎,所以工具内那道归属校验
+            # 对它不生效,得在拦截之前判一次。不然争议入口就成了绕过校验的后门。
+            if not business.owns_order(uid, str(tc["args"].get("txn_id") or "")):
                 not_owned = True
                 tool_msgs.append(ToolMessage(
-                    content="没有找到这位用户的这笔订单,本次不发起退款。请如实告知没查到,"
-                            "并让用户从下面列出的订单里选一笔,不要再调用任何工具。",
-                    tool_call_id=tc["id"], name="submit_refund", status="error"))
+                    content="没有找到这位用户的这笔交易,本次不发起申诉。请如实告知没查到,"
+                            "并让用户从下面列出的交易里选一笔,不要再调用任何工具。",
+                    tool_call_id=tc["id"], name="submit_dispute", status="error"))
                 continue
             actions.append({"type": "refund_form",
-                            "draft": {"order_id": tc["args"].get("order_id", ""),
+                            "draft": {"txn_id": tc["args"].get("txn_id", ""),
                                       "reason": tc["args"].get("reason")}})
             tool_msgs.append(ToolMessage(
-                content="已把『提交退款工单』选项交给用户确认。请用一句话说明这一单可以退款并停止,不要再调用任何工具。",
-                tool_call_id=tc["id"], name="submit_refund"))
+                content="已把『提交争议申诉』选项交给用户确认。请用一句话说明这一笔可以申诉并停止,不要再调用任何工具。",
+                tool_call_id=tc["id"], name="submit_dispute"))
         elif tc["name"] == "create_ticket" and decision is not None:
             if tc is ticket_calls[0]:
                 # resume 值形状守卫:同一 resume 端点服务两种中断,错配(如传了 order_id 字符串)
@@ -394,11 +394,11 @@ async def agent_tools(state) -> dict:
         else:
             # 含参数缺失的 create_ticket(decision is None):引擎校验拦下,错误说明回灌
             run = await engine.execute_tool_call(tc, cid, specs, user_id=uid)
-            if tc["name"] == "query_order" and not business.owns_order(
-                    uid, str((tc.get("args") or {}).get("order_id") or "")):
+            if tc["name"] == "query_transaction" and not business.owns_order(
+                    uid, str((tc.get("args") or {}).get("txn_id") or "")):
                 not_owned = True
             tool_msgs.append(run.tool_message)
-    # 拒绝之后给一条出路:把他名下的单亮出来点选,否则他既查不到,也不知道自己的单号是多少
+    # 拒绝之后给一条出路:把他名下的交易亮出来点选,否则他既查不到,也不知道自己的交易号是多少
     if not_owned:
         actions.append({"type": "select_order", "orders": business.list_user_orders(uid)})
     out = {"messages": tool_msgs}

@@ -225,9 +225,9 @@ async def _stream_events(cid: int, stream_source) -> AsyncIterator[dict]:
                 if node == "agent_tools":
                     for m in upd.get("messages", []):
                         name = getattr(m, "name", None)
-                        # submit_refund 仍是「拦成前端表单」的合成消息,不发工具帧;
+                        # submit_dispute 仍是「拦成前端表单」的合成消息,不发工具帧;
                         # create_ticket ch08 起确认后真执行,照常发帧
-                        if name and name != "submit_refund":
+                        if name and name != "submit_dispute":
                             yield {"type": "tool", "name": name}
                 if upd.get("suggested_actions"):
                     actions.extend(upd["suggested_actions"])

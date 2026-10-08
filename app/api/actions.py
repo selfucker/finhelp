@@ -42,10 +42,10 @@ async def create_ticket_action(req: CreateTicketRequest) -> CreateTicketResponse
 
 @router.post("/api/actions/create-refund", response_model=CreateRefundResponse)
 async def create_refund_action(req: CreateRefundRequest) -> CreateRefundResponse:
-    """退款表单提交:写 tickets(ticket_type='退款'),描述带订单号 + 固定类目原因。复用 ch02 工单能力。"""
-    desc = f"退款申请 订单号={req.order_id} 原因={req.reason}"
+    """争议表单提交:写 tickets(ticket_type='争议'),描述带交易号 + 固定类目原因。复用 ch02 工单能力。"""
+    desc = f"争议申诉 交易号={req.txn_id} 原因={req.reason}"
     try:
-        ticket_no = await repository.create_ticket(req.conversation_id, desc, "退款")
+        ticket_no = await repository.create_ticket(req.conversation_id, desc, "争议")
     except SQLAlchemyError:
         logger.exception("退款单创建失败 conv=%s", req.conversation_id)
         raise HTTPException(status_code=503, detail="退款系统暂时不可用,请稍后重试")

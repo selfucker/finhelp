@@ -21,37 +21,38 @@ def _translate(mapping: dict[str, str], code):
     return mapping.get(code, code)
 
 
-def _fmt_logistics(d: dict) -> dict:
-    return {"tracking_no": d.get("tracking_no"),
-            "status": _translate({"PICKED_UP": "已揽件", "IN_TRANSIT": "运输中",
-                                  "DELIVERING": "派送中", "DELIVERED": "已签收"}, d.get("status_code")),
-            "current_city": d.get("current_city"), "trace": d.get("trace")}
+def _fmt_bill_status(d: dict) -> dict:
+    return {"bill_ref": d.get("bill_ref"),
+            "status": _translate({"BILL_UNPAID": "未出账/待还", "BILL_PARTIAL": "部分还款",
+                                  "BILL_PAID": "已还清", "BILL_OVERDUE": "已逾期"}, d.get("status_code")),
+            "amount_due": d.get("amount_due"), "min_payment": d.get("min_payment"),
+            "due_date": d.get("due_date")}
 
 
-def _fmt_warranty(d: dict) -> dict:
-    return {"order_id": d.get("order_id"),
-            "warranty": _translate({"IN_WARRANTY": "在保", "EXPIRED": "已过保"}, d.get("warranty_code")),
-            "warranty_until": d.get("warranty_until")}
+def _fmt_risk(d: dict) -> dict:
+    return {"customer_id": d.get("customer_id"),
+            "risk": _translate({"RISK_LOW": "正常", "RISK_HIGH": "高风险"}, d.get("risk_code")),
+            "need_freeze": d.get("need_freeze")}
 
 
-def _fmt_return(d: dict) -> dict:
-    return {"order_id": d.get("order_id"),
-            "return_status": _translate({"AUDITING": "审核中", "RETURNING": "退货中",
-                                         "REFUNDED": "已退款", "NONE": "无退货记录"}, d.get("return_code")),
+def _fmt_dispute(d: dict) -> dict:
+    return {"dispute_no": d.get("dispute_no"),
+            "dispute_status": _translate({"INVESTIGATING": "调查中", "RESOLVED_REFUNDED": "已退款",
+                                          "REJECTED": "已驳回", "NONE": "无争议记录"}, d.get("dispute_code")),
             "updated_at": d.get("updated_at")}
 
 
 # 结果格式化我们侧登记(挑回答用得上的字段 + 内部枚举码翻人话);未登记的 MCP 工具透传
-FORMATTERS = {"query_logistics": _fmt_logistics, "query_warranty": _fmt_warranty,
-              "query_return_status": _fmt_return}
+FORMATTERS = {"query_bill_status": _fmt_bill_status, "query_risk_level": _fmt_risk,
+              "query_dispute_status": _fmt_dispute}
 
 _client: MultiServerMCPClient | None = None
 
 
 def _connections() -> dict:
     return {
-        "logistics": {"transport": "streamable_http", "url": settings.mcp_logistics_url},
-        "aftersales": {"transport": "streamable_http", "url": settings.mcp_aftersales_url},
+        "billing": {"transport": "streamable_http", "url": settings.mcp_logistics_url},
+        "riskcontrol": {"transport": "streamable_http", "url": settings.mcp_aftersales_url},
     }
 
 

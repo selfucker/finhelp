@@ -11,11 +11,11 @@ from app.core import llm
 from app.core.llm import get_chat_model
 from app.core.prompts import INTENT_CLASSIFY_PROMPT
 
-INTENTS = ("物流", "订单", "商品咨询", "退款退货", "售后", "投诉", "人工", "闲聊", "其他")
+INTENTS = ("投诉", "闲聊", "其他", "业务咨询", "争议申诉", "账务调整", "人工", "账务查询", "卡片与安全")
 
 
 class _Intent(BaseModel):
-    intent: Literal["物流", "订单", "商品咨询", "退款退货", "售后", "投诉", "人工", "闲聊", "其他"] = Field(
+    intent: Literal["投诉", "闲聊", "其他", "业务咨询", "争议申诉", "账务调整", "人工", "账务查询", "卡片与安全"] = Field(
         description="九类意图之一")
     confidence: float = Field(default=0.5, ge=0.0, le=1.0, description="判断把握 0-1")
 

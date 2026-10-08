@@ -6,18 +6,17 @@ from langchain_core.messages import AIMessage
 
 from app.config import settings
 
-# 九类意图 → 五出口(写死的分流规则,spec §3.1 / README route_by_intent;
-# 返回值 = build.py 条件边映射键,单一来源不漂移)
+# 九类意图(金融域) → 五出口(写死的分流规则;返回值 = build.py 条件边映射键,单一来源不漂移)
 INTENT_TO_ROUTE: dict[str, str] = {
     "投诉": "escalate",
     "闲聊": "fallback_script",
     "其他": "fallback_script",
-    "商品咨询": "knowledge",
-    "退款退货": "refund_flow",
-    "售后": "refund_flow",
-    "人工": "business",   # ch08:明确要求建工单/转人工 → 主力 Agent 走 create_ticket 确认流
-    "物流": "business",
-    "订单": "business",
+    "业务咨询": "knowledge",
+    "争议申诉": "refund_flow",
+    "账务调整": "refund_flow",
+    "人工": "business",   # 明确要求建工单/转人工 → 主力 Agent 走 create_ticket 确认流
+    "账务查询": "business",
+    "卡片与安全": "business",
 }
 
 

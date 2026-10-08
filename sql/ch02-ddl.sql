@@ -52,7 +52,7 @@ CREATE TABLE tickets (
   ticket_no       VARCHAR(32)     NOT NULL                COMMENT '工单号,如 T20260701008',
   conversation_id BIGINT UNSIGNED NOT NULL                COMMENT '关联会话,可倒查当时聊了什么',
   description     TEXT            NOT NULL                COMMENT '问题描述',
-  ticket_type     ENUM('售后','投诉','咨询') NOT NULL     COMMENT '工单类型',
+  ticket_type     ENUM('账务','投诉','咨询') NOT NULL     COMMENT '工单类型',
   status          ENUM('待处理','已处理') NOT NULL DEFAULT '待处理' COMMENT '处理状态',
   created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (ticket_no),

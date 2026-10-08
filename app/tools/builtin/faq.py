@@ -12,7 +12,7 @@ from app.tools import registry
 
 class FaqInput(BaseModel):
     keyword: str = Field(description="用户咨询的政策/规则/操作类问题(可用原话)")
-    category: str | None = Field(default=None, description="可选:按品类过滤,如『运费』『退货』『商品手册』")
+    category: str | None = Field(default=None, description="可选:按业务过滤,如『费率』『争议』『账户』")
 
 
 @tool(args_schema=FaqInput)
