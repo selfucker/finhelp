@@ -1,7 +1,7 @@
 [
-  {"query": "邮费是多少", "expect_answer_contains": "包邮"},
-  {"query": "快递费怎么收", "expect_answer_contains": "运费"},
-  {"query": "多久能发货", "expect_answer_contains": "48"},
-  {"query": "东西不想要了能退吗", "expect_answer_contains": "7"},
-  {"query": "怎么开发票", "expect_answer_contains": "开票"}
+  {"query": "分期手续费是多少", "expect_answer_contains": "0.6%"},
+  {"query": "年费怎么免", "expect_answer_contains": "6 次"},
+  {"query": "最低还款是多少", "expect_answer_contains": "10%"},
+  {"query": "这笔不是我刷的能申诉吗", "expect_answer_contains": "争议"},
+  {"query": "挂失怎么操作", "expect_answer_contains": "止付"}
 ]
