@@ -6,7 +6,8 @@ from dataclasses import dataclass
 
 from app.kb import chunking
 
-_KEY_TERMS = ("退款", "退货", "时效", "运费", "邮费", "费用", "保修", "赔偿", "期限", "包邮")
+_KEY_TERMS = ("费率", "利息", "手续费", "年费", "违约金", "额度", "还款", "逾期",
+              "到账", "征信", "争议", "减免", "分期", "盗刷")
 # ch09 起跨模块复用(confidence 关键条款信号 / review 写回打标),导出公共名
 KEY_TERMS = _KEY_TERMS
 
