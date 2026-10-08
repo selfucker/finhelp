@@ -1,36 +1,72 @@
-> 这份源码是一个 git 仓库，按章节分了分支。当前 `main` 是最终完整代码，
-> `git checkout ch01` … `git checkout ch09` 可以看每一章当时有哪些文件。
-> 早期分支只供对照阅读，里面会有指向后续章节的 import，不保证能直接运行。
+# FinHelp — 银行/信用卡智能客服 Agent
 
-# MewHelp — 电商智能客服 Agent
+> **来源说明**
+>
+> 本项目基于 [小林coding](https://xiaolincoding.com)《AI Agent 智能客服实战》课程的配套源码
+> **MewHelp**（宠物电商智能客服）改造而来：**技术栈与代码骨架保持一致**，只替换了业务外壳
+> ——意图体系 / 主题类目 / 工具 / 知识库 / 业务数据 / 前端文案 / 评估集，从「宠物电商客服」
+> 改成「银行信用卡客服」。
+>
+> 源码文件头的原始来源声明（`# 来源：公众号@小林coding`）**予以保留**，未做删改。
+> 改造的完整设计方案见 [docs/改造方案书.md](docs/改造方案书.md)。
 
-《AI Agent 智能客服实战》的配套源码。一个能查订单物流、答政策 FAQ、走退款子流程、
-挖知识补库、还能微调一个主题分类器的完整客服系统。
+一个能查交易账单、答费率政策 FAQ、走争议申诉流程、挖知识补库、还能微调一个主题分类器的
+**金融客服 Agent**。
 
-代码是随课程一章章长出来的，不分支：ch01 一个纯对话接口起步，到 ch10 收尾时是下面这套东西。
+## 业务域设计
+
+- **意图体系**：9 意图 → 5 出口（与课程原版结构完全同构）
+  账务查询 / 业务咨询 / 争议申诉 / 账务调整 / 卡片与安全 / 投诉 / 人工 / 闲聊 / 其他
+- **知识库**：7 篇金融文档 —— 卡片账户、账单还款、费率计息、争议拒付、积分权益、安全反诈、综合FAQ（切块 44 段）
+- **内置工具**：`query_transaction`（查交易）· `query_rate_policy`（查费率规则）·
+  `submit_dispute`（发起争议申诉）· `create_ticket`（建人工工单）· `query_faq`（政策知识库检索）
+- **MCP 工具**（两台独立进程）：
+  `query_bill_status`（账务核心 :8101）· `query_risk_level` / `query_dispute_status`（风控与争议 :8102）
+- **金融合规护栏**：不索要密码/验证码/完整卡号、不承诺收益、资金争议优先转人工、
+  涉钱回答统一带「以银行官方口径为准」
 
 ## 技术栈
 
 FastAPI + LangGraph / LangChain + SQLAlchemy / MySQL + Milvus。
 
 聊天、嵌入、重排三组上游各自直连，没有网关那一层。模型名和地址都在 `.env` 里配
-(`CHAT_*` / `EMBED_*` / `RERANK_*` 三组)，换供应商、换模型不用改代码。
+（`CHAT_*` / `EMBED_*` / `RERANK_*` 三组），换供应商、换模型不用改代码。
 
-## 跑起来
+## 快速开始
 
 ```bash
-cp .env.example .env      # 填 CHAT_* / EMBED_* / RERANK_* 三组
-docker compose up -d      # MySQL
-make seed                 # 灌业务测试数据
-make dev                  # 依赖容器 + MCP :8101/:8102 + 应用 :8000
+cp .env.example .env                 # 填 CHAT_* / EMBED_* / RERANK_* 三组密钥
+docker compose up -d                 # mysql / etcd / minio / milvus
+make seed && make seed-conv          # 建表种子 + 合成对话
+make kb-build && make kb-vectorize   # 金融知识库切块 + 向量化
+make dev                             # 依赖容器 + MCP :8101/:8102 + 应用 :8000
 ```
 
 浏览器打开 <http://localhost:8000> 就是聊天页。
 
-**详细的安装、配置、建知识库、常见问题，看飞书那篇「MewHelp 项目源码下载」**，
-这里只留一条能把服务拉起来的最短路径。两边写岔了以那篇为准。
+### 两个踩过的环境坑
 
-## 代码怎么组织
+1. **MinIO 镜像**：官方 `minio/minio` 已从 Docker Hub 下架（拉取报 `unauthorized`），
+   `docker-compose.yml` 已改用同源镜像站 `openebs/minio:RELEASE.2024-12-18T13-15-44Z`
+   （entrypoint/cmd 与官方一致，含 curl/mc，可直接替换）。
+2. **CHAT_MODEL**：实测 `deepseek-v4-flash` 走 `api.deepseek.com` 时 function calling
+   通道严重不稳定（同一问句连测 8 次失败 5 次 —— 模型判对了，但把结果当正文吐出、
+   不走 `tool_calls`，导致结构化输出解析失败、意图兜底成「其他」）；
+   改用 `deepseek-v4-pro` 后同条件 **8 次全过**。
+
+## 相对课程原版的改造范围
+
+| 层 | 改动 |
+|---|---|
+| 意图体系 | 9 意图换金融语义（结构仍 9 → 5 出口） |
+| 主题类目 | 17 类 → 金融 17 类（含边界说明 / 示例说法 / 严中宽容错档） |
+| 工具层 | 5 个内置工具改名 + 两台 MCP Server 换成「账务核心」「风控与争议」 |
+| 知识库 | 6 篇电商文档 → 7 篇金融文档 |
+| 业务数据 | 订单/物流 mock → 交易/账单 mock（`merchant` / `bill_ref`） |
+| 前端 | 12 个页面文案 + 争议表单字段 + 示例问句 |
+| 数据与测试 | 评估数据文件、全量测试断言同步（**487 passed / 0 failed**） |
+
+## 目录结构
 
 | 位置 | 装的是什么 |
 | - | - |
@@ -39,13 +75,12 @@ make dev                  # 依赖容器 + MCP :8101/:8102 + 应用 :8000
 | `app/core/` | 单点能力。上游客户端、检索、重排、意图、指代、摘要、置信度、飞轮、可观测 |
 | `app/kb/` | 知识怎么进库。切块、嵌入、双写 MySQL 与 Milvus、去重、从对话里挖问答对 |
 | `app/tools/` | 工具系统。内置 `@tool`、MCP 客户端、注册表、统一执行引擎 |
-| `app/db/` | 表模型与仓储 |
 | `app/static/` | 前端页面。聊天、知识库录入、飞轮待审、观测与成本、主题分布、分类器验收 |
-| `mcp_servers/` | 两台业务 MCP Server，物流和售后各一台，独立进程 |
-| `sql/` | 各章的建表与迁移，容器首启按文件名顺序自动执行 |
-| `scripts/` | 建库、评估、微调这些离线活 |
-| `docs/superpowers/` | 各章的 spec 和 plan。课程实战篇教的就是这套流程，留着当范本 |
-| `primer/` | 前置篇两篇的配套例子（大模型是什么、Agent 怎么动起来），各自独立，跟项目其他代码没有依赖关系，`.env` 用同一份 |
+| `mcp_servers/` | 两台账务与风控 MCP Server，独立进程，mock 数据 |
+| `data/kb/` | 金融知识库 markdown（建库材料） |
+| `sql/` | 建表 DDL 与种子数据，容器首启按文件名顺序自动执行 |
+| `tests/` | 测试与评估数据 |
+| `docs/` | 设计与改造文档 |
 
 ## 各章长出了什么，怎么验
 
@@ -58,24 +93,26 @@ make dev                  # 依赖容器 + MCP :8101/:8102 + 应用 :8000
 | ch03 | 切块、嵌入、MySQL 与 Milvus 双写、对话挖知识 | `make kb-build` `make kb-vectorize` `make eval-retrieval` |
 | ch04 | 混合检索、RRF、重排、Query 改写、四策略评估 | `make smoke-rag` `make eval-rag` |
 | ch05 | LangGraph workflow 骨架 + 主力 Agent 的 ReAct 环 | `make eval-ch05` |
-| ch06 | 分流器、指代消解、退款子流程的 interrupt/resume | `make smoke-interrupt` `make eval-ch06` |
+| ch06 | 分流器、指代消解、争议子流程的 interrupt/resume | `make smoke-interrupt` `make eval-ch06` |
 | ch07 | 上下文管理。滑窗、摘要、前缀缓存 | `make eval-ch07` |
 | ch08 | 工具系统。MCP 动态发现、统一执行引擎、审计日志 | `make eval-ch08` |
-| ch09 | Langfuse 自部署、数据飞轮、成本账 | `make langfuse-up` `make flywheel` `make eval-flywheel` `make cost-report` |
+| ch09 | Langfuse 自部署、数据飞轮、成本账 | `make langfuse-up` `make flywheel` `make cost-report` |
 | ch10 | 主题分类器。语料、微调、阈值扫描、ONNX 推理服务 | `make ch10-corpus` `make ch10-train` `make ch10-eval` |
-
-每条命令的前置条件（哪些服务得先起、哪张表得先建）写在飞书那篇文档的「各章验收」段里。
-`make help` 也能看到带说明的完整目标清单。
 
 ## 端口
 
 | 端口 | 是什么 |
 | - | - |
 | 8000 | 应用 |
-| 8101 / 8102 | 业务 MCP Server，物流 / 售后 |
+| 8101 / 8102 | 业务 MCP Server，账务核心 / 风控与争议 |
 | 8110 | ch10 主题分类器推理服务（`make classifier-up` 之后） |
 | 3000 | Langfuse（`make langfuse-up` 之后） |
 | 19530 | Milvus |
 
 应用那几个页面：`/` 聊天、`/kb` 知识库录入、`/review` 飞轮待审、`/observability` 观测与成本、
-`/topics` 主题分布、`/acceptance` 分类器验收。
+`/topics` 主题分布、`/rag-eval` RAG 评估、`/acceptance` 分类器验收。
+
+## 许可与使用
+
+课程原版未附 LICENSE，本项目也**未重新授权**。仅供学习与个人研究；如需引用请注明来源
+（小林coding《AI Agent 智能客服实战》配套源码 MewHelp）。
