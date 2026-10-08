@@ -25,10 +25,10 @@ async def test_message_json_tool_calls_roundtrip(db_session_factory, db_clean):
             conversation_id=conv.id,
             role="assistant",
             content=None,
-            tool_calls=[{"name": "query_order", "args": {"order_id": "1001"}, "id": "c1"}],
+            tool_calls=[{"name": "query_transaction", "args": {"order_id": "1001"}, "id": "c1"}],
         )
         s.add(msg)
         await s.commit()
         got = await s.get(Message, msg.id)
-        assert got.tool_calls[0]["name"] == "query_order"   # JSON 往返
+        assert got.tool_calls[0]["name"] == "query_transaction"   # JSON 往返
         assert got.role == "assistant"

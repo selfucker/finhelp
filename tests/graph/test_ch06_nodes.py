@@ -155,18 +155,18 @@ async def test_retrieve_policy_expands_dedups_merges(monkeypatch):
     assert out["trace"]["retrieve_policy"]["queries"] == ["退货政策", "无理由退换货", "退货时限"]
 
 
-# ---- Task 9: submit_refund 拦截 + _agent_messages refund 适配 ----
+# ---- Task 9: submit_dispute 拦截 + _agent_messages refund 适配 ----
 
 @pytest.mark.asyncio
-async def test_agent_tools_intercepts_submit_refund():
+async def test_agent_tools_intercepts_submit_dispute():
     uid = "u1"
     mine = nodes.business.list_user_orders(uid)[0]["order_id"]
     ai = AIMessage(content="", tool_calls=[
-        {"id": "r1", "name": "submit_refund", "args": {"order_id": mine, "reason": None}}])
+        {"id": "r1", "name": "submit_dispute", "args": {"order_id": mine, "reason": None}}])
     out = await nodes.agent_tools({"messages": [ai], "user_id": uid})
     assert out["suggested_actions"] == [{"type": "refund_form", "draft": {"order_id": mine, "reason": None}}]
     tm = out["messages"][0]
-    assert tm.name == "submit_refund"                       # 合成 ToolMessage 促收敛
+    assert tm.name == "submit_dispute"                       # 合成 ToolMessage 促收敛
     assert "退款" in tm.content
 
 
@@ -180,9 +180,9 @@ def test_agent_messages_injects_order_and_policy_on_refund():
     assert "7天无理由" not in msgs[0].content and "猫粮 5kg" not in msgs[0].content  # 不进 system
     ctx = msgs[-1].content                                   # 本轮材料紧跟用户那句
     assert "7天无理由" in ctx                                 # 政策证据
-    assert "猫粮 5kg" in ctx and "submit_refund" in ctx       # 订单数据 + 判定指令
+    assert "猫粮 5kg" in ctx and "submit_dispute" in ctx       # 订单数据 + 判定指令
     # 顺序不能反:REFUND_JUDGE_HINT 的措辞假设证据已在前文给过
-    assert ctx.index("7天无理由") < ctx.index("submit_refund")
+    assert ctx.index("7天无理由") < ctx.index("submit_dispute")
 
 
 def test_agent_messages_knowledge_path_still_injects_evidence():

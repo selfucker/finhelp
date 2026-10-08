@@ -37,7 +37,7 @@ def _fake_stream_turn(events: list[dict]):
 
 async def test_chat_tool_path_streams_badge_and_answer(monkeypatch):
     events = [
-        {"type": "tool", "name": "query_logistics"},
+        {"type": "tool", "name": "query_bill_status"},
         {"type": "delta", "text": "您的订单 "},
         {"type": "delta", "text": "1001 "},
         {"type": "delta", "text": "正在运输中。"},
@@ -56,7 +56,7 @@ async def test_chat_tool_path_streams_badge_and_answer(monkeypatch):
 
     payloads = _data_payloads(lines)
     tools = [p for p in payloads if p.get("event") == "tool"]
-    assert tools and tools[0]["name"] == "query_logistics"     # 工具轨迹徽章帧
+    assert tools and tools[0]["name"] == "query_bill_status"     # 工具轨迹徽章帧
     deltas = "".join(p["delta"] for p in payloads if "delta" in p)
     assert deltas == "您的订单 1001 正在运输中。"                 # 逐 token 流式最终答
     done = [p for p in payloads if p.get("event") == "done"]

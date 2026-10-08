@@ -55,7 +55,7 @@ def _client() -> MultiServerMCPClient:
 async def test_list_tools_three_essentials(mcp_procs):
     tools = await _client().get_tools()
     by = {t.name: t for t in tools}
-    assert set(by) == {"query_logistics", "query_warranty", "query_return_status"}
+    assert set(by) == {"query_bill_status", "query_risk_level", "query_dispute_status"}
     for t in by.values():
         assert t.description                                   # 用途描述
         schema = t.args_schema if isinstance(t.args_schema, dict) else t.args_schema.model_json_schema()
@@ -72,7 +72,7 @@ def _text_of(result) -> str:
 
 async def test_invoke_logistics_stable_mock(mcp_procs):
     tools = {t.name: t for t in await _client().get_tools(server_name="logistics")}
-    r1 = await tools["query_logistics"].ainvoke({"tracking_no": "SF123"})
-    r2 = await tools["query_logistics"].ainvoke({"tracking_no": "SF123"})
+    r1 = await tools["query_bill_status"].ainvoke({"tracking_no": "SF123"})
+    r2 = await tools["query_bill_status"].ainvoke({"tracking_no": "SF123"})
     assert _text_of(r1) == _text_of(r2)                        # 种子稳定
     assert "status_code" in _text_of(r1)                       # 内部枚举码在(client 侧翻译是引擎的事)

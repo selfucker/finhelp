@@ -114,10 +114,10 @@ def make_messages():
     msgs.append(_am(f"好的{F['user_name']}，查一下。"))
 
     # R3: 工具 - 查订单
-    tc1 = [{"id": "tc-1", "name": "query_order", "args": {"order_id": F["order_id"]}}]
+    tc1 = [{"id": "tc-1", "name": "query_transaction", "args": {"order_id": F["order_id"]}}]
     msgs.append(_hm("帮我查订单"))
     msgs.append(_am("", tool_calls=tc1))
-    msgs.append(_tm(_big_order(), "tc-1", "query_order"))
+    msgs.append(_tm(_big_order(), "tc-1", "query_transaction"))
     msgs.append(_am(f"查到了，{F['product_model']}智能摄像头，已签收。请问什么问题？"))
 
     # R4: complaint_reason

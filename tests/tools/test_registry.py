@@ -7,13 +7,13 @@ import logging
 from app.tools import registry
 
 
-def test_builtin_scan_registers_core_tools_without_query_logistics():
+def test_builtin_scan_registers_core_tools_without_query_bill_status():
     names = {s.name for s in registry.builtin_specs()}
-    # 钉红线不钉全集:核心五工具必须在、query_logistics 必须不在(物流由 MCP 接管)。
+    # 钉红线不钉全集:核心五工具必须在、query_bill_status 必须不在(物流由 MCP 接管)。
     # builtin/ 是"丢文件即注册"的即插即用目录(如验收 1 的 promotions.py),
     # 断言精确集合会让任何合法丢入文件打红测试,与本章语义自相矛盾。
-    assert {"query_order", "query_product", "query_faq", "create_ticket", "submit_refund"} <= names
-    assert "query_logistics" not in names
+    assert {"query_transaction", "query_rate_policy", "query_faq", "create_ticket", "submit_dispute"} <= names
+    assert "query_bill_status" not in names
 
 
 def test_every_spec_has_three_essentials():

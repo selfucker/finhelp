@@ -105,7 +105,7 @@ async def test_stream_turn_maps_events(monkeypatch, no_summary_task):
             yield ("messages", (AIMessage("订单"), {"langgraph_node": "classify_intent"}))
             # updates 模式:工具帧 + citations + actions
             yield ("updates", {"agent_tools": {"messages": [
-                ToolMessage(content="{}", tool_call_id="1", name="query_logistics")]}})
+                ToolMessage(content="{}", tool_call_id="1", name="query_bill_status")]}})
             yield ("updates", {"retrieve_knowledge": {"citations": [{"n": 1}]}})
             yield ("updates", {"complaint_reply": {"answer": "抱歉",
                     "suggested_actions": [{"type": "transfer_human"}]}})
@@ -117,7 +117,7 @@ async def test_stream_turn_maps_events(monkeypatch, no_summary_task):
     tools = [e["name"] for e in events if e["type"] == "tool"]
     assert "已" in deltas and "发货" in deltas
     assert "订单" not in deltas  # 非答复节点被过滤
-    assert tools == ["query_logistics"]
+    assert tools == ["query_bill_status"]
     assert any(e["type"] == "citations" for e in events)
     assert any(e["type"] == "actions" for e in events)
     assert kinds[-1] == "done" and events[-1]["conversation_id"] == 7

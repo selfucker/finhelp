@@ -25,10 +25,10 @@ async def main() -> None:
     async with httpx.AsyncClient(timeout=120) as c:
         results = []
 
-        # 验收2:业务数据类,Agent 自己调工具(物流依赖订单 → query_order + query_logistics)
+        # 验收2:业务数据类,Agent 自己调工具(物流依赖订单 → query_transaction + query_bill_status)
         b = await agent(c, "订单1001的物流到哪了")
         names = {tc["name"] for tc in b["tool_calls"]}
-        results.append(("验收2 物流自调工具", "query_logistics" in names, sorted(names)))
+        results.append(("验收2 物流自调工具", "query_bill_status" in names, sorted(names)))
 
         # 验收3(后端部分):投诉出「转人工」「建工单」两可选项,后端不自动建单
         b = await agent(c, "我要投诉,你们太差了")
@@ -39,10 +39,10 @@ async def main() -> None:
         b = await agent(c, "你好呀")
         results.append(("验收4 闲聊固定话术零工具", not b["tool_calls"] and bool(b["answer"]), b["answer"][:24]))
 
-        # 验收5:复杂问 → 真·顺序多步(query_logistics 需 query_order 产出的 tracking_no)
+        # 验收5:复杂问 → 真·顺序多步(query_bill_status 需 query_transaction 产出的 tracking_no)
         b = await agent(c, "我手机尾号1001那个订单发货没?到哪了?")
         names = {tc["name"] for tc in b["tool_calls"]}
-        chained = {"query_order", "query_logistics"} <= names
+        chained = {"query_transaction", "query_bill_status"} <= names
         results.append(("验收5 ReAct 顺序多步(order→logistics 链)", chained, sorted(names)))
 
     print("=" * 60)

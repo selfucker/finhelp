@@ -74,9 +74,9 @@ def test_step1_prompt_is_strict_prefix_of_step2():
     step1 = _agent_messages({**base, "messages": [q]})
     step2 = _agent_messages({**base, "messages": [
         q,
-        AIMessage("", tool_calls=[{"name": "query_order", "args": {"order_id": "1001"},
+        AIMessage("", tool_calls=[{"name": "query_transaction", "args": {"order_id": "1001"},
                                    "id": "call_1"}]),
-        ToolMessage("已签收", tool_call_id="call_1", name="query_order"),
+        ToolMessage("已签收", tool_call_id="call_1", name="query_transaction"),
     ]})
     shape = lambda ms: [(m.type, m.content) for m in ms]      # noqa: E731
     assert shape(step2)[:len(step1)] == shape(step1)

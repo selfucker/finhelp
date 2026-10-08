@@ -33,7 +33,7 @@ def test_reply_truncated_beyond_threshold():
 
 def test_small_tool_result_kept_large_one_dropped():
     small = '{"order_id": "1001", "status": "已付款"}'
-    assert memory.compress_tool_result("query_order", small) == small
+    assert memory.compress_tool_result("query_transaction", small) == small
     big = memory.compress_tool_result("query_faq", "证据" * 2000)
     assert "query_faq" in big and len(big) < 60
 
@@ -96,9 +96,9 @@ def test_层2压缩必须保住tool_calls():
     单测里造消息很容易只写 content,这条洞因此能一直藏着,直到层 2 真被接进请求路径。
     """
     from langchain_core.messages import AIMessage, ToolMessage
-    call = {"name": "query_order", "args": {"order_id": "1001"}, "id": "call_abc", "type": "tool_call"}
+    call = {"name": "query_transaction", "args": {"order_id": "1001"}, "id": "call_abc", "type": "tool_call"}
     msgs = [AIMessage("我来帮您查一下订单" * 20, id="a1", tool_calls=[call]),
-            ToolMessage("订单数据" * 200, tool_call_id="call_abc", name="query_order", id="t1")]
+            ToolMessage("订单数据" * 200, tool_call_id="call_abc", name="query_transaction", id="t1")]
     out = memory.to_layer2(msgs)
     assert out[0].content.endswith("…(略)")            # 正文压了
     assert [c["id"] for c in out[0].tool_calls] == ["call_abc"]   # 调用结构没丢

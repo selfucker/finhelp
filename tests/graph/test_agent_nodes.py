@@ -69,9 +69,9 @@ async def test_agent_tools_executes_normal_tool(monkeypatch, builtin_only_specs)
                                                 tool_call_id=tc["id"], name=tc["name"]))
 
     monkeypatch.setattr(nodes.engine, "execute_tool_call", fake_exec)
-    ai = AIMessage("", tool_calls=[{"name": "query_logistics", "args": {"order_id": "1001"}, "id": "t1"}])
+    ai = AIMessage("", tool_calls=[{"name": "query_bill_status", "args": {"order_id": "1001"}, "id": "t1"}])
     out = await nodes.agent_tools({"messages": [ai], "conversation_id": 5})
-    assert out["messages"][0].name == "query_logistics"
+    assert out["messages"][0].name == "query_bill_status"
     assert not out.get("suggested_actions")
 
 
@@ -101,14 +101,14 @@ async def test_agent_tools_create_ticket_missing_args_no_interrupt(monkeypatch, 
 
 
 @pytest.mark.asyncio
-async def test_agent_tools_still_intercepts_submit_refund(monkeypatch, builtin_only_specs):
+async def test_agent_tools_still_intercepts_submit_dispute(monkeypatch, builtin_only_specs):
     async def fake_exec(tc, cid, specs, **kw):
-        raise AssertionError("submit_refund 不应进引擎(拦成前端退款表单)")
+        raise AssertionError("submit_dispute 不应进引擎(拦成前端退款表单)")
 
     monkeypatch.setattr(nodes.engine, "execute_tool_call", fake_exec)
     uid = "u-agent"
     mine = nodes.business.list_user_orders(uid)[0]["order_id"]   # 得是他自己的单才拦成表单
-    ai = AIMessage("", tool_calls=[{"name": "submit_refund",
+    ai = AIMessage("", tool_calls=[{"name": "submit_dispute",
                     "args": {"order_id": mine}, "id": "t8"}])
     out = await nodes.agent_tools({"messages": [ai], "conversation_id": 5, "user_id": uid})
     assert out["suggested_actions"][0]["type"] == "refund_form"
@@ -116,17 +116,17 @@ async def test_agent_tools_still_intercepts_submit_refund(monkeypatch, builtin_o
 
 
 async def test_退款不给别人的单开表单入口(monkeypatch, builtin_only_specs):
-    # submit_refund 在节点里就被拦成前端表单、不进执行引擎,所以工具内那道校验够不着它。
+    # submit_dispute 在节点里就被拦成前端表单、不进执行引擎,所以工具内那道校验够不着它。
     # 这里守住:不是他的单,连「提交退款工单」这个入口都不该出现
     async def fake_exec(tc, cid, specs, **kw):
-        raise AssertionError("submit_refund 不应进引擎")
+        raise AssertionError("submit_dispute 不应进引擎")
 
     monkeypatch.setattr(nodes.engine, "execute_tool_call", fake_exec)
     uid, other = "u-agent", "u-someone-else"
     # 得挑对方的**私有**单:演示单(1001/2002)每个账号都有,拿它当「别人的单」不成立
     his = [o["order_id"] for o in nodes.business.list_user_orders(other)
            if o["order_id"] not in nodes.business.DEMO_ORDER_IDS][0]
-    ai = AIMessage("", tool_calls=[{"name": "submit_refund",
+    ai = AIMessage("", tool_calls=[{"name": "submit_dispute",
                     "args": {"order_id": his}, "id": "t9"}])
     out = await nodes.agent_tools({"messages": [ai], "conversation_id": 5, "user_id": uid})
     types = [a["type"] for a in out["suggested_actions"]]

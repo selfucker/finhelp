@@ -13,8 +13,8 @@ from app.main import app
 
 def _fake_state_with_tool_trace():
     ai = AIMessage("", tool_calls=[
-        {"name": "query_logistics", "args": {"order_id": "1001"}, "id": "c1"}])
-    tm = ToolMessage(content='{"status":"运输中"}', tool_call_id="c1", name="query_logistics")
+        {"name": "query_bill_status", "args": {"order_id": "1001"}, "id": "c1"}])
+    tm = ToolMessage(content='{"status":"运输中"}', tool_call_id="c1", name="query_bill_status")
     final_ai = AIMessage("订单 1001 正在运输中。")
     return {
         "messages": [HumanMessage("订单 1001 到哪了"), ai, tm, final_ai],
@@ -32,7 +32,7 @@ def test_agent_endpoint_returns_tool_trace(monkeypatch):
     body = r.json()
     assert body["conversation_id"] == 12
     assert body["answer"] == "订单 1001 正在运输中。"
-    assert body["tool_calls"][0]["name"] == "query_logistics"
+    assert body["tool_calls"][0]["name"] == "query_bill_status"
     assert body["tool_results"][0]["ok"] is True
     assert body["suggested_actions"] == []
 

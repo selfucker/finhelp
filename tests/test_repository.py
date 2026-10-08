@@ -16,7 +16,7 @@ async def test_create_and_get_conversation(db_session_factory, db_clean):
 async def test_append_and_list_messages_in_order(db_session_factory, db_clean):
     cid = await repo.create_conversation("u1")
     await repo.append_message(cid, "user", content="订单 1001 到哪了")
-    await repo.append_message(cid, "assistant", tool_calls=[{"name": "query_logistics", "args": {"order_id": "1001"}, "id": "c1"}])
+    await repo.append_message(cid, "assistant", tool_calls=[{"name": "query_bill_status", "args": {"order_id": "1001"}, "id": "c1"}])
     await repo.append_message(cid, "tool", content='{"status":"运输中"}', tool_call_id="c1")
     msgs = await repo.list_messages(cid)
     assert [m.role for m in msgs] == ["user", "assistant", "tool"]

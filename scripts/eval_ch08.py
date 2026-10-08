@@ -99,14 +99,14 @@ async def main():
         # ---- 验收2:物流轨迹由物流 MCP Server 接管(工具轨迹+审计来源) ----
         r4 = await agent(c, "订单1001的物流到哪了")
         names = [tc["name"] for tc in r4.get("tool_calls", [])]
-        lg = [tr for tr in r4.get("tool_results", []) if tr["name"] == "query_logistics"]
+        lg = [tr for tr in r4.get("tool_results", []) if tr["name"] == "query_bill_status"]
         zh_status = any(s in (lg[0]["content"] if lg else "")
                         for s in ("已揽件", "运输中", "派送中", "已签收"))
         src = await db_scalar(
             engine, "SELECT CONCAT(tool_source,'/',IFNULL(mcp_server,'')) FROM tool_audit_logs "
-                    "WHERE tool_name='query_logistics' ORDER BY id DESC LIMIT 1")
+                    "WHERE tool_name='query_bill_status' ORDER BY id DESC LIMIT 1")
         results.append(("验收2 物流走 MCP(轨迹含中文状态+审计来源 mcp/logistics)",
-                        "query_logistics" in names and zh_status and src == "mcp/logistics",
+                        "query_bill_status" in names and zh_status and src == "mcp/logistics",
                         f"tools={names} 审计来源={src} answer={r4['answer']!r}"))
 
     await engine.dispose()
