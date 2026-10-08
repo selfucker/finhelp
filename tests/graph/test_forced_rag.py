@@ -39,11 +39,11 @@ async def test_forced_rag_weak_when_below_threshold(monkeypatch):
 async def test_classify_intent_sets_route_in_state(monkeypatch):
     # route 必须落进 State,否则 _agent_messages 判不出知识路、强制检索证据不会注入
     async def fake_classify(query, history=""):
-        return {"intent": "退款退货", "confidence": 0.8}
+        return {"intent": "争议申诉", "confidence": 0.8}
     monkeypatch.setattr(nodes.intent_mod, "classify", fake_classify)
-    out = await nodes.classify_intent({"messages": [HumanMessage("我要退货")]})
-    assert out["intent"] == "退款退货"
-    assert out["route"] == "refund_flow"      # ch06:退款退货 → refund_flow 出口
+    out = await nodes.classify_intent({"messages": [HumanMessage("我要对这笔交易发起申诉")]})
+    assert out["intent"] == "争议申诉"
+    assert out["route"] == "refund_flow"      # ch06:争议申诉 → refund_flow 出口
     assert out["trace"]["route"] == "refund_flow"
 
 

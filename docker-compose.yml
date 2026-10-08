@@ -35,7 +35,9 @@ services:
       retries: 3
 
   minio:
-    image: minio/minio:RELEASE.2024-05-28T17-19-04Z
+    # MinIO 官方镜像已从 Docker Hub 下架(拉取报 unauthorized: authentication required),
+    # 改用同源镜像站(entrypoint/cmd 与官方一致,含 curl/mc,可直接替换)
+    image: openebs/minio:RELEASE.2024-12-18T13-15-44Z
     container_name: mewhelp-milvus-minio
     environment:
       MINIO_ACCESS_KEY: minioadmin

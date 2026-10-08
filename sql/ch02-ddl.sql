@@ -1,7 +1,7 @@
 -- =============================================================
 -- ch02 · Function Calling 工具链 · 建表 DDL
 -- 本章新建:faq / conversations / messages / tickets 四张表
--- 商品、订单、物流走工具内 mock,不建表
+-- 交易、账单、风控走工具内 mock,不建表
 -- 全库统一 ENGINE=InnoDB、CHARSET=utf8mb4
 -- 建表顺序:先 conversations,再依赖它的 messages / tickets
 -- =============================================================

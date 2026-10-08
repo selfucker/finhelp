@@ -8,9 +8,9 @@ import pytest
 from app.core.confidence import EvidenceConfidence, compute_evidence_confidence, snapshot_from_hits
 
 
-def _hit(score, q="退货运费谁出", a="满99包邮,退货运费买家承担"):
+def _hit(score, q="分期手续费是多少", a="账单分期每期手续费率 0.6%"):
     return {"question": q, "answer": a, "rerank_score": score,
-            "section_path": "售后 / 退货", "id": 1, "content_type": "faq"}
+            "section_path": "费率与计息 / 分期手续费", "id": 1, "content_type": "faq"}
 
 
 def test_empty_hits_zero_confidence():
@@ -24,12 +24,12 @@ def test_strong_evidence_scores_high():
     assert r.score > 0.7
     assert r.signals["top1_score"] == 0.95
     assert r.signals["margin"] == pytest.approx(0.55)
-    assert r.signals["key_clause_hit"] is True   # 「退货」「运费」命中关键条款词表
+    assert r.signals["key_clause_hit"] is True   # 「手续费」「费率」命中关键条款词表
 
 
 def test_weak_flat_evidence_scores_low():
-    hits = [_hit(0.22, q="猫粮口味", a="三文鱼味与鸡肉味"),
-            _hit(0.21, q="猫粮口味", a="三文鱼味与鸡肉味")]
+    hits = [_hit(0.22, q="积分兑换", a="积分可在商城兑换"),
+            _hit(0.21, q="积分兑换", a="积分可在商城兑换")]
     r = compute_evidence_confidence(hits)
     assert r.score < 0.4
     assert r.signals["valid_count"] == 0          # 全部低于有效线
@@ -56,8 +56,8 @@ def test_snapshot_from_hits_top3_shape():
     hits = [_hit(0.9), _hit(0.8), _hit(0.7), _hit(0.6)]
     snap = snapshot_from_hits(hits)
     assert len(snap) == 3
-    assert snap[0] == {"question": "退货运费谁出", "answer": "满99包邮,退货运费买家承担",
-                       "rerank_score": 0.9, "section_path": "售后 / 退货"}
+    assert snap[0] == {"question": "分期手续费是多少", "answer": "账单分期每期手续费率 0.6%",
+                       "rerank_score": 0.9, "section_path": "费率与计息 / 分期手续费"}
 
 
 def test_snapshot_empty_hits():

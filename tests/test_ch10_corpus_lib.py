@@ -23,10 +23,10 @@ def test_dedupe_keeps_first():
 
 def _make_samples():
     samples = []
-    for cls, n in (("退换货", 40), ("物流", 40), ("尺码", 30)):
+    for cls, n in (("争议拒付", 40), ("账单查询", 40), ("额度", 30)):
         samples += [{"text": f"{cls}问题{i}", "labels": [cls]} for i in range(n)]
-    samples += [{"text": f"多诉求{i}", "labels": ["尺码", "退换货"]} for i in range(12)]
-    samples += [{"text": f"小组合{i}", "labels": ["物流", "退换货"]} for i in range(3)]
+    samples += [{"text": f"多诉求{i}", "labels": ["额度", "争议拒付"]} for i in range(12)]
+    samples += [{"text": f"小组合{i}", "labels": ["账单查询", "争议拒付"]} for i in range(3)]
     return samples
 
 
@@ -43,7 +43,7 @@ def test_split_every_class_in_every_split():
     train, val, test = split_dataset(_make_samples())
     for split in (train, val, test):
         found = {lb for s in split for lb in s["labels"]}
-        assert {"退换货", "物流", "尺码"} <= found
+        assert {"争议拒付", "账单查询", "额度"} <= found
 
 
 def test_split_deterministic():

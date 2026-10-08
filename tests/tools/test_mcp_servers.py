@@ -72,7 +72,7 @@ def _text_of(result) -> str:
 
 async def test_invoke_logistics_stable_mock(mcp_procs):
     tools = {t.name: t for t in await _client().get_tools(server_name="logistics")}
-    r1 = await tools["query_bill_status"].ainvoke({"tracking_no": "SF123"})
-    r2 = await tools["query_bill_status"].ainvoke({"tracking_no": "SF123"})
+    r1 = await tools["query_bill_status"].ainvoke({"bill_ref": "TX123"})
+    r2 = await tools["query_bill_status"].ainvoke({"bill_ref": "TX123"})
     assert _text_of(r1) == _text_of(r2)                        # 种子稳定
     assert "status_code" in _text_of(r1)                       # 内部枚举码在(client 侧翻译是引擎的事)

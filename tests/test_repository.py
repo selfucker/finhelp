@@ -25,11 +25,11 @@ async def test_append_and_list_messages_in_order(db_session_factory, db_clean):
 
 async def test_create_ticket_writes_and_flips_conversation_status(db_session_factory, db_clean):
     cid = await repo.create_conversation("u1")
-    no = await repo.create_ticket(cid, "要退货", "售后")
+    no = await repo.create_ticket(cid, "账单有误需更正", "账务")
     assert no.startswith("T")
     async with db_session_factory() as s:
         t = await s.get(Ticket, no)
-        assert t.ticket_type == "售后" and t.status == "待处理"
+        assert t.ticket_type == "账务" and t.status == "待处理"
         conv = await s.get(Conversation, cid)
         assert conv.status == "已转人工"          # 会话状态流转
 

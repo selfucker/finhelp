@@ -15,15 +15,15 @@ from httpx import ASGITransport, AsyncClient
 from app.api import kb as kb_api
 from app.db import repository
 
-MD = """# 会员权益
+MD = """# 费率与计息
 
-## 运费与包邮
+## 分期手续费
 
-满 99 元包邮,未满收 10 元运费。偏远地区运费 20 元,不参与包邮。
+账单分期每期手续费率 0.6%,消费分期每期 0.75%。费率以申请页面为准。
 
-## 发货时效
+## 还款到账
 
-现货 48 小时内发货,预售按商品页标注的时间发。
+本行 App 还款一般实时到账,跨行转账以渠道为准。
 """
 
 
@@ -57,8 +57,8 @@ async def test_preview_is_dry_run(client):
     body = resp.json()
     assert body["total"] == 2                       # 两个二级标题 → 两节两块
     assert body["features"]["sections"] == 2
-    assert body["chunks"][0]["section_path"] == "会员权益 / 运费与包邮"
-    assert body["chunks"][0]["is_key_clause"] is True   # 命中「运费/包邮」
+    assert body["chunks"][0]["section_path"] == "费率与计息 / 分期手续费"
+    assert body["chunks"][0]["is_key_clause"] is True   # 命中「手续费/费率」
     assert body["duplicates"] == 0 and body["dedup_known"] is True
     assert await repository.knowledge_stats() == {          # 预览不写库
         "total": 0, "pending": 0, "done": 0, "by_content_type": {}, "key_clause": 0}

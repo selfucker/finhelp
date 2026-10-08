@@ -107,7 +107,7 @@ async def test_calibration_flags_threshold_out_of_sync(client, reports, monkeypa
     calib = (await client.get("/api/observability/overview")).json()["calibration"]
     assert calib["present"] is True
     assert calib["recommended"]["threshold"] == 0.26 and calib["in_use"] == 0.5
-    assert calib["in_sync"] is False
+    assert calib["in_sync"] == "conservative"      # 高于推荐值:更保守,页面标 conservative
     assert calib["weights"]["top1"] == 0.5          # 四信号权重是代码常量,页面照抄
 
 

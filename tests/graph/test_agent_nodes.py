@@ -109,7 +109,7 @@ async def test_agent_tools_still_intercepts_submit_dispute(monkeypatch, builtin_
     uid = "u-agent"
     mine = nodes.business.list_user_orders(uid)[0]["order_id"]   # 得是他自己的单才拦成表单
     ai = AIMessage("", tool_calls=[{"name": "submit_dispute",
-                    "args": {"order_id": mine}, "id": "t8"}])
+                    "args": {"txn_id": mine}, "id": "t8"}])
     out = await nodes.agent_tools({"messages": [ai], "conversation_id": 5, "user_id": uid})
     assert out["suggested_actions"][0]["type"] == "refund_form"
     assert out["messages"][0].tool_call_id == "t8"
@@ -127,7 +127,7 @@ async def test_退款不给别人的单开表单入口(monkeypatch, builtin_only
     his = [o["order_id"] for o in nodes.business.list_user_orders(other)
            if o["order_id"] not in nodes.business.DEMO_ORDER_IDS][0]
     ai = AIMessage("", tool_calls=[{"name": "submit_dispute",
-                    "args": {"order_id": his}, "id": "t9"}])
+                    "args": {"txn_id": his}, "id": "t9"}])
     out = await nodes.agent_tools({"messages": [ai], "conversation_id": 5, "user_id": uid})
     types = [a["type"] for a in out["suggested_actions"]]
     assert "refund_form" not in types          # 没有退款入口

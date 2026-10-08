@@ -15,10 +15,10 @@ SET @c1 = (SELECT id FROM conversations WHERE user_id = 'seed-u1' ORDER BY id DE
 SET @c2 = (SELECT id FROM conversations WHERE user_id = 'seed-u2' ORDER BY id DESC LIMIT 1);
 
 INSERT INTO messages (conversation_id, role, content) VALUES
-  (@c1, 'user',      '你们发货一般多久啊'),
-  (@c1, 'assistant', '现货商品付款后 48 小时内发货,预售以商品详情页标注时间为准。'),
-  (@c2, 'user',      '满多少包邮'),
-  (@c2, 'assistant', '单笔订单满 99 元包邮,未满收取 10 元运费,偏远地区另计。');
+  (@c1, 'user',      '你们还款一般多久到账啊'),
+  (@c1, 'assistant', '本行 App 与借记卡还款一般实时到账,跨行转账与第三方渠道到账时间以渠道为准,建议还款日前 1-2 个工作日操作。'),
+  (@c2, 'user',      '分期手续费怎么算'),
+  (@c2, 'assistant', '账单分期每期手续费率 0.6%,消费分期每期 0.75%,费率与期数以申请页面为准。');
 
 -- 段3 验证:seed 会话应为 2,消息应为 4
 SELECT COUNT(*) AS after_conv FROM conversations WHERE user_id LIKE 'seed-%';

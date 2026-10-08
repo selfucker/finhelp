@@ -11,13 +11,13 @@ from app.graph import nodes
 @pytest.mark.asyncio
 async def test_classify_intent_writes_confidence_and_route(monkeypatch):
     async def fake_classify(query, history=""):
-        return {"intent": "退款退货", "confidence": 0.83}
+        return {"intent": "争议申诉", "confidence": 0.83}
     monkeypatch.setattr(nodes.intent_mod, "classify", fake_classify)
     out = await nodes.classify_intent({"messages": [HumanMessage("这个能退吗")],
-                                       "resolved_query": "蓝牙耳机还能申请退货吗"})
-    assert out["intent"] == "退款退货"
+                                       "resolved_query": "这笔交易还能申请争议退款吗"})
+    assert out["intent"] == "争议申诉"
     assert out["intent_confidence"] == 0.83
-    assert out["route"] == "refund_flow"                 # 退款退货 → refund_flow
+    assert out["route"] == "refund_flow"                 # 争议申诉 → refund_flow
     assert out["trace"]["route"] == "refund_flow"
     assert out["trace"]["intent_confidence"] == 0.83     # 不覆盖 confidence_check 的 confidence 键
 
@@ -120,7 +120,7 @@ def test_list_user_orders_stable_and_queryable():
     b = business.list_user_orders("u-42")
     assert a == b and len(a) >= 2                            # 同 user 稳定
     snap = business.order_snapshot(a[0]["order_id"])
-    assert snap["order_id"] == a[0]["order_id"] and snap["product"] == a[0]["product"]
+    assert snap["order_id"] == a[0]["order_id"] and snap["merchant"] == a[0]["merchant"]
 
 
 # ---- Task 8: retrieve_policy 扩写多查 + 去重合并 ----
@@ -162,12 +162,12 @@ async def test_agent_tools_intercepts_submit_dispute():
     uid = "u1"
     mine = nodes.business.list_user_orders(uid)[0]["order_id"]
     ai = AIMessage(content="", tool_calls=[
-        {"id": "r1", "name": "submit_dispute", "args": {"order_id": mine, "reason": None}}])
+        {"id": "r1", "name": "submit_dispute", "args": {"txn_id": mine, "reason": None}}])
     out = await nodes.agent_tools({"messages": [ai], "user_id": uid})
-    assert out["suggested_actions"] == [{"type": "refund_form", "draft": {"order_id": mine, "reason": None}}]
+    assert out["suggested_actions"] == [{"type": "refund_form", "draft": {"txn_id": mine, "reason": None}}]
     tm = out["messages"][0]
     assert tm.name == "submit_dispute"                       # 合成 ToolMessage 促收敛
-    assert "退款" in tm.content
+    assert "争议申诉" in tm.content
 
 
 def test_agent_messages_injects_order_and_policy_on_refund():

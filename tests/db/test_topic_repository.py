@@ -37,14 +37,14 @@ async def test_text_prefers_normalized(db_session_factory):
 
 
 async def test_topic_distribution_counts_all_17(db_session_factory):
-    qid = await repository.insert_low_confidence(None, "猫窝买大了想退", "retrieval_low_conf", None)
+    qid = await repository.insert_low_confidence(None, "额度不够想调额", "retrieval_low_conf", None)
     await repository.insert_topic_classifications(
-        [{"question_id": qid, "labels": ["尺码", "退换货"]}])
+        [{"question_id": qid, "labels": ["额度", "争议拒付"]}])
     dist = await repository.topic_distribution()
     assert dist["total"] == 1
     assert len(dist["classes"]) == 17
     by_label = {c["label"]: c for c in dist["classes"]}
-    assert by_label["尺码"]["count"] == 1 and by_label["退换货"]["count"] == 1
-    assert by_label["物流"]["count"] == 0
-    assert by_label["尺码"]["samples"] == ["猫窝买大了想退"]
+    assert by_label["额度"]["count"] == 1 and by_label["争议拒付"]["count"] == 1
+    assert by_label["账单查询"]["count"] == 0
+    assert by_label["额度"]["samples"] == ["额度不够想调额"]
     assert dist["latest"] is not None
